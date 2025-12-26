@@ -1,0 +1,268 @@
+{
+  "name": "AI Web Security Scanner (n8n)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -48
+      ],
+      "id": "8550ca30-6aea-4d4b-b18e-e20614aea8ba",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f301339f-598e-48fc-a3ac-6025a142b8ad",
+              "name": "target_url",
+              "value": "http://testphp.vulnweb.com/",
+              "type": "string"
+            },
+            {
+              "id": "3f7f88f5-3f6c-4419-9bc3-26744a3a8780",
+              "name": "goal",
+              "value": "High-level web security assessment focusing on missing security headers.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        -48
+      ],
+      "id": "1206ba3f-2fbb-4d55-978b-a8857ca15618",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"target_url\"]}}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        80,
+        -32
+      ],
+      "id": "c5988abb-d7ca-4bb1-9bd2-5c16253ec21f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9fbf764-3ea0-4c54-a099-1a32d320da4d",
+              "name": "headers",
+              "value": "={{$json[\"headers\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "cebcba08-2c52-4e08-8865-c9aa222478b7",
+              "name": "statusCode",
+              "value": "={{$json[\"statusCode\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "7c462c91-efc9-4ace-909f-84dff4a7c795",
+              "name": "html",
+              "value": "={{$json[\"data\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -32
+      ],
+      "id": "17ecd589-aa12-496f-b437-4a55f19ed6e4",
+      "name": "Prepare for AI"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please perform a high-level web security assessment for this site.\n\nGoal: {{$node[\"Edit Fields\"].json[\"goal\"]}}\nTarget URL: {{$node[\"Edit Fields\"].json[\"target_url\"]}}\n\nHTTP response:\n- Status code: {{$node[\"Prepare for AI\"].json[\"statusCode\"]}}\n- Headers: {{$node[\"Prepare for AI\"].json[\"headers\"]}}\n- HTML body:\n{{$node[\"Prepare for AI\"].json[\"html\"]}}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a web security scanner assistant. You receive: - an HTTP response for a website (status code, headers, HTML body) - the user's goal and target URL  Use this to perform a clear, high-level security review and suggest practical improvements."
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=Please perform a high-level web security assessment for this site.  Goal: {{$node[\"Edit Fields\"].json[\"goal\"]}} Target URL: {{$node[\"Edit Fields\"].json[\"target_url\"]}}  HTTP Response: - Status code: {{$node[\"Prepare for AI\"].json[\"statusCode\"]}} - Headers: {{$node[\"Prepare for AI\"].json[\"headers\"]}}  HTML Body: {{$node[\"Prepare for AI\"].json[\"html\"]}}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        528,
+        -32
+      ],
+      "id": "7845dbd2-22cd-4e22-ba3c-66936ce8c5ce",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        208
+      ],
+      "id": "256c95b2-46be-4ce1-a4ea-b968e6f71825",
+      "name": "Analyze Security",
+      "credentials": {
+        "openAiApi": {
+          "id": "PSeNU6Vc0zEwxuC8",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0581bbfd-5458-4bbd-98bc-cd4de266c811",
+              "name": "=target_url",
+              "value": "={{$node[\"Edit Fields\"].json[\"target_url\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "80ce19a1-eb5c-49df-a2ba-ca1881e4ebdf",
+              "name": "=goal",
+              "value": "={{$node[\"Edit Fields\"].json[\"goal\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "3134cd9b-e52c-41ad-926e-889ce866acd5",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "67e8a730-48b4-4d92-87dd-4b04b91f9445",
+      "name": "Format Result"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Prepare for AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Security": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for AI": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a43d544a-93d9-4c18-b5fb-79073e15dd95",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc2f9db18aa650f2332be1de3848d21befe58e1dca10b3d7f33a321209aee68c"
+  },
+  "id": "jG1XbDh08mU8BUJr",
+  "tags": []
+}
